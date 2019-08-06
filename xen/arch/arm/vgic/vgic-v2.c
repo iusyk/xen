@@ -322,6 +322,19 @@ int vgic_v2_map_resources(struct domain *d)
     }
 
     /* Mapping of the virtual CPU interface is deferred until first access */
+    /*
+     * Map the gic virtual cpu interface in the gic cpu interface
+     * region of the guest.
+     */
+    /* commented during the merge
+    ret = map_mmio_regions(d, gaddr_to_gfn(cbase), csize / PAGE_SIZE,
+                           maddr_to_mfn(vbase), p2m_mmio_direct_dev);
+    if ( ret )
+    {
+        gdprintk(XENLOG_ERR, "Unable to remap VGIC CPU to VCPU\n");
+        return ret;
+    }
+    */
 
     dist->ready = true;
 
