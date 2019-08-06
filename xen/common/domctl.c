@@ -284,6 +284,7 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
     bool copyback = false;
     struct xen_domctl curop, *op = &curop;
     struct domain *d;
+    p2m_type_t p2mt;
 
     if ( copy_from_guest(op, u_domctl, 1) )
         return -EFAULT;
@@ -708,6 +709,10 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
         /* Must break hypercall up as this could take a while. */
         if ( nr_mfns > 0x3000 )
             break;
+
+        p2mt = p2m_mmio_direct_dev;
+#else
+        p2mt = p2m_mmio_direct;
 #endif
 
         ret = -EPERM;
@@ -728,7 +733,7 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
                    "memory_map:add: dom%d gfn=%lx mfn=%lx nr=%lx\n",
                    d->domain_id, gfn, mfn, nr_mfns);
 
-            ret = map_mmio_regions(d, _gfn(gfn), nr_mfns, _mfn(mfn));
+            ret = map_mmio_regions(d, _gfn(gfn), nr_mfns, _mfn(mfn), p2mt);
             if ( ret < 0 )
                 printk(XENLOG_G_WARNING
                        "memory_map:fail: dom%d gfn=%lx mfn=%lx nr=%lx ret:%ld\n",

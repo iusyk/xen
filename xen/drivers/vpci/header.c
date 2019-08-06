@@ -73,7 +73,7 @@ static int cf_check map_range(
          * - {un}map_mmio_regions doesn't support preemption.
          */
 
-        rc = map->map ? map_mmio_regions(map->d, _gfn(s), size, _mfn(s))
+        rc = map->map ? map_mmio_region(map->d, _gfn(s), size, _mfn(s))
                       : unmap_mmio_regions(map->d, _gfn(s), size, _mfn(s));
         if ( rc == 0 )
         {

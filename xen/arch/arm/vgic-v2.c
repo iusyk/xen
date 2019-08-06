@@ -706,6 +706,16 @@ static int vgic_v2_domain_init(struct domain *d)
     }
 
     /* Mapping of the virtual CPU interface is deferred until first access */
+    /*
+     * Map the gic virtual cpu interface in the gic cpu interface
+     * region of the guest.
+     */
+    /* commented during the merge
+     ret = map_mmio_regions(d, gaddr_to_gfn(cbase), csize / PAGE_SIZE,
+                           maddr_to_mfn(vbase), p2m_mmio_direct_dev);
+    if ( ret )
+        return ret;
+    */
 
     register_mmio_handler(d, &vgic_v2_distr_mmio_handler, d->arch.vgic.dbase,
                           PAGE_SIZE, NULL);
