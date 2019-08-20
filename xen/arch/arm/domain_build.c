@@ -1589,6 +1589,278 @@ int __init make_chosen_node(const struct kernel_info *kinfo)
     return res;
 }
 
+int __init map_irq_to_domain(struct domain *d, unsigned int irq,
+                             bool need_mapping, const char *devname)
+{
+    int res;
+
+    res = irq_permit_access(d, irq);
+    if ( res )
+    {
+        printk(XENLOG_ERR "Unable to permit to dom%u access to IRQ %u\n",
+               d->domain_id, irq);
+        return res;
+    }
+
+    if ( need_mapping )
+    {
+        /*
+         * Checking the return of vgic_reserve_virq is not
+         * necessary. It should not fail except when we try to map
+         * the IRQ twice. This can legitimately happen if the IRQ is shared
+         */
+        vgic_reserve_virq(d, irq);
+
+        res = route_irq_to_guest(d, irq, irq, devname);
+        if ( res < 0 )
+        {
+            printk(XENLOG_ERR "Unable to map IRQ%"PRId32" to dom%d\n",
+                   irq, d->domain_id);
+            return res;
+        }
+    }
+
+    dt_dprintk("  - IRQ: %u\n", irq);
+    return 0;
+}
+
+static int __init map_dt_irq_to_domain(const struct dt_device_node *dev,
+                                       const struct dt_irq *dt_irq,
+                                       void *data)
+{
+    struct domain *d = data;
+    unsigned int irq = dt_irq->irq;
+    int res;
+    bool need_mapping = !dt_device_for_passthrough(dev);
+
+    if ( irq < NR_LOCAL_IRQS )
+    {
+        printk(XENLOG_ERR "%s: IRQ%"PRId32" is not a SPI\n",
+               dt_node_name(dev), irq);
+        return -EINVAL;
+    }
+
+    /* Setup the IRQ type */
+    res = irq_set_spi_type(irq, dt_irq->type);
+    if ( res )
+    {
+        printk(XENLOG_ERR
+               "%s: Unable to setup IRQ%"PRId32" to dom%d\n",
+               dt_node_name(dev), irq, d->domain_id);
+        return res;
+    }
+
+    res = map_irq_to_domain(d, irq, need_mapping, dt_node_name(dev));
+
+    return 0;
+}
+
+static int __init map_range_to_domain(const struct dt_device_node *dev,
+                                      u64 addr, u64 len,
+                                      void *data)
+{
+    struct map_range_data *mr_data = data;
+    struct domain *d = mr_data->d;
+    bool need_mapping = !dt_device_for_passthrough(dev);
+    int res;
+
+    res = iomem_permit_access(d, paddr_to_pfn(addr),
+                              paddr_to_pfn(PAGE_ALIGN(addr + len - 1)));
+    if ( res )
+    {
+        printk(XENLOG_ERR "Unable to permit to dom%d access to"
+               " 0x%"PRIx64" - 0x%"PRIx64"\n",
+               d->domain_id,
+               addr & PAGE_MASK, PAGE_ALIGN(addr + len) - 1);
+        return res;
+    }
+
+    if ( need_mapping )
+    {
+        res = map_regions_p2mt(d,
+                               gaddr_to_gfn(addr),
+                               PFN_UP(len),
+                               maddr_to_mfn(addr),
+                               mr_data->p2mt);
+
+        if ( res < 0 )
+        {
+            printk(XENLOG_ERR "Unable to map 0x%"PRIx64
+                   " - 0x%"PRIx64" in domain %d\n",
+                   addr & PAGE_MASK, PAGE_ALIGN(addr + len) - 1,
+                   d->domain_id);
+            return res;
+        }
+    }
+
+    dt_dprintk("  - MMIO: %010"PRIx64" - %010"PRIx64" P2MType=%x\n",
+               addr, addr + len, mr_data->p2mt);
+
+    return 0;
+}
+
+/*
+ * For a node which describes a discoverable bus (such as a PCI bus)
+ * then we may need to perform additional mappings in order to make
+ * the child resources available to domain 0.
+ */
+static int __init map_device_children(struct domain *d,
+                                      const struct dt_device_node *dev,
+                                      p2m_type_t p2mt)
+{
+    struct map_range_data mr_data = { .d = d, .p2mt = p2mt };
+    int ret;
+
+    if ( dt_device_type_is_equal(dev, "pci") )
+    {
+        dt_dprintk("Mapping children of %s to guest\n",
+                   dt_node_full_name(dev));
+
+        ret = dt_for_each_irq_map(dev, &map_dt_irq_to_domain, d);
+        if ( ret < 0 )
+            return ret;
+
+        ret = dt_for_each_range(dev, &map_range_to_domain, &mr_data);
+        if ( ret < 0 )
+            return ret;
+    }
+
+    return 0;
+}
+
+/*
+ * handle_device_interrupts retrieves the interrupts configuration from
+ * a device tree node and maps those interrupts to the target domain.
+ *
+ * Returns:
+ *   < 0 error
+ *   0   success
+ */
+static int __init handle_device_interrupts(struct domain *d,
+                                           struct dt_device_node *dev,
+                                           bool need_mapping)
+{
+    unsigned int i, nirq;
+    int res;
+    struct dt_raw_irq rirq;
+
+    nirq = dt_number_of_irq(dev);
+
+    /* Give permission and map IRQs */
+    for ( i = 0; i < nirq; i++ )
+    {
+        res = dt_device_get_raw_irq(dev, i, &rirq);
+        if ( res )
+        {
+            printk(XENLOG_ERR "Unable to retrieve irq %u for %s\n",
+                   i, dt_node_full_name(dev));
+            return res;
+        }
+
+        /*
+         * Don't map IRQ that have no physical meaning
+         * ie: IRQ whose controller is not the GIC
+         */
+        if ( rirq.controller != dt_interrupt_controller )
+        {
+            dt_dprintk("irq %u not connected to primary controller. Connected to %s\n",
+                      i, dt_node_full_name(rirq.controller));
+            continue;
+        }
+
+        res = platform_get_irq(dev, i);
+        if ( res < 0 )
+        {
+            printk(XENLOG_ERR "Unable to get irq %u for %s\n",
+                   i, dt_node_full_name(dev));
+            return res;
+        }
+
+        res = map_irq_to_domain(d, res, need_mapping, dt_node_name(dev));
+        if ( res )
+            return res;
+    }
+
+    return 0;
+}
+
+/*
+ * For a given device node:
+ *  - Give permission to the guest to manage IRQ and MMIO range
+ *  - Retrieve the IRQ configuration (i.e edge/level) from device tree
+ * When the device is not marked for guest passthrough:
+ *  - Try to call iommu_add_dt_device to protect the device by an IOMMU
+ *  - Assign the device to the guest if it's protected by an IOMMU
+ *  - Map the IRQs and iomem regions to DOM0
+ */
+static int __init handle_device(struct domain *d, struct dt_device_node *dev,
+                                p2m_type_t p2mt)
+{
+    unsigned int naddr;
+    unsigned int i;
+    int res;
+    u64 addr, size;
+    bool need_mapping = !dt_device_for_passthrough(dev);
+
+    naddr = dt_number_of_address(dev);
+
+    dt_dprintk("%s passthrough = %d naddr = %u\n",
+               dt_node_full_name(dev), need_mapping, naddr);
+
+    if ( need_mapping )
+    {
+        dt_dprintk("Check if %s is behind the IOMMU and add it\n",
+                   dt_node_full_name(dev));
+
+        res = iommu_add_dt_device(dev);
+        if ( res < 0 )
+        {
+            printk(XENLOG_ERR "Failed to add %s to the IOMMU\n",
+                   dt_node_full_name(dev));
+            return res;
+        }
+
+        if ( dt_device_is_protected(dev) )
+        {
+            dt_dprintk("%s setup iommu\n", dt_node_full_name(dev));
+            res = iommu_assign_dt_device(d, dev);
+            if ( res )
+            {
+                printk(XENLOG_ERR "Failed to setup the IOMMU for %s\n",
+                       dt_node_full_name(dev));
+                return res;
+            }
+        }
+    }
+
+    res = handle_device_interrupts(d, dev, need_mapping);
+    if ( res < 0 )
+        return res;
+
+    /* Give permission and map MMIOs */
+    for ( i = 0; i < naddr; i++ )
+    {
+        struct map_range_data mr_data = { .d = d, .p2mt = p2mt };
+        res = dt_device_get_address(dev, i, &addr, &size);
+        if ( res )
+        {
+            printk(XENLOG_ERR "Unable to retrieve address %u for %s\n",
+                   i, dt_node_full_name(dev));
+            return res;
+        }
+
+        res = map_range_to_domain(dev, addr, size, &mr_data);
+        if ( res )
+            return res;
+    }
+
+    res = map_device_children(d, dev, p2mt);
+    if ( res )
+        return res;
+
+    return 0;
+}
+
 static int __init handle_node(struct domain *d, struct kernel_info *kinfo,
                               struct dt_device_node *node,
                               p2m_type_t p2mt)
