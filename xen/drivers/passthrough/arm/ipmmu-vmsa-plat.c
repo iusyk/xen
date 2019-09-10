@@ -8,6 +8,7 @@
  *
  * Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
  * Copyright (c) 2018-2021 EPAM Systems.
+ * Copyright (c) 2018 EPAM Systems.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -253,6 +254,52 @@ static int __init ipmmu_power_on(struct dt_device_node *np)
 	}
 
 	return ret;
+}
+
+/* PRR MMIO range */
+#define PRR_BASE		0xfff00044
+#define PRR_SIZE		0x4
+
+#define RCAR_PRODUCT_CUT_MASK		0x00007fff
+#define RCAR_PRODUCT_H3_CUT_VER30	0x00004f20
+
+static bool is_soc_h3_es30(void)
+{
+	void __iomem *base;
+	u32 val;
+	static enum {
+		UNKNOWN,
+		DETECTED,
+		NOTDETECTED
+	} h3_es30 = UNKNOWN;
+
+	/* Use the flag to avoid checking for the H3 revision more then once */
+	switch (h3_es30) {
+	case DETECTED:
+		return true;
+
+	case NOTDETECTED:
+		return false;
+
+	case UNKNOWN:
+	default:
+		h3_es30 = NOTDETECTED;
+		break;
+	}
+
+	base = ioremap_nocache(PRR_BASE, PRR_SIZE);
+	if (!base) {
+		printk("Failed to ioremap PRR MMIO\n");
+		return false;
+	}
+
+	val = readl(base);
+	if ((val & RCAR_PRODUCT_CUT_MASK) == RCAR_PRODUCT_H3_CUT_VER30)
+		h3_es30 = DETECTED;
+
+	iounmap(base);
+
+	return h3_es30 == DETECTED;
 }
 
 /*

@@ -132,6 +132,9 @@ struct ipmmu_vmsa_device {
     struct ipmmu_vmsa_domain *domains[IPMMU_CTX_MAX];
     unsigned int utlb_refcount[IPMMU_UTLB_MAX];
     const struct ipmmu_features *features;
+
+    /* To show whether we have to disable IPMMU TLB cache function */
+    bool is_mmu_tlb_disabled;
 };
 
 /*
@@ -228,6 +231,9 @@ static DEFINE_SPINLOCK(ipmmu_devices_lock);
 
 #define IMSCTLR             0x0500
 #define IMSCTLR_USE_SECGRP  (1 << 28)
+#define IMSCTLR_DISCACHE    0xE0000000
+
+#define IMSCTLR             0x0500
 #define IMSCTLR_DISCACHE    0xE0000000
 
 #define IMSAUXCTLR          0x0504
@@ -983,6 +989,9 @@ static int ipmmu_probe(struct dt_device_node *node)
     }
     else
     {
+        /* Only Cache devices are affected */
+        mmu->is_mmu_tlb_disabled = ipmmu_is_mmu_tlb_disable_needed(node);
+
         /*
          * Disable IPMMU TLB cache function of Cache devices that
          * do require such action.
@@ -1390,7 +1399,6 @@ static __init int ipmmu_init(struct dt_device_node *node, const void *data)
      * the IPMMU device to dom0.
      */
     dt_device_set_used_by(node, DOMID_XEN);
-
 
     if ( !s4 && dt_device_is_compatible(node, "renesas,ipmmu-r8a779f0") )
         s4 = true;
