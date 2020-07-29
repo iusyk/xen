@@ -1649,6 +1649,9 @@ static int libxl__prepare_dtb(libxl__gc *gc, libxl_domain_config *d_config,
     const libxl_version_info *vers;
     const struct arch_info *ainfo;
 
+    libxl_domain_config *d_config =
+        CONTAINER_OF(info, libxl_domain_config, b_info);
+
     vers = libxl_get_version_info(CTX);
     if (vers == NULL) return ERROR_FAIL;
 
