@@ -202,6 +202,16 @@ static int libxl__device_disk_setdefault(libxl__gc *gc, uint32_t domid,
         disk->backend = LIBXL_DISK_BACKEND_QDISK;
     }
 
+    /* Force virtio_disk backend for Virtio devices */
+    if (disk->virtio) {
+        if (!(disk->backend == LIBXL_DISK_BACKEND_VIRTIO ||
+              disk->backend == LIBXL_DISK_BACKEND_UNKNOWN)) {
+            LOGD(ERROR, domid, "Backend for Virtio devices on must be virtio_disk");
+            return ERROR_FAIL;
+        }
+        disk->backend = LIBXL_DISK_BACKEND_VIRTIO;
+    }
+
     rc = libxl__device_disk_set_backend(gc, disk);
     return rc;
 }

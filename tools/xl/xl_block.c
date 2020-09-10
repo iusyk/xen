@@ -50,6 +50,11 @@ int main_blockattach(int argc, char **argv)
         return 0;
     }
 
+    if (disk.virtio) {
+        fprintf(stderr, "block-attach is not supported for Virtio device\n");
+        return 1;
+    }
+
     if (libxl_device_disk_add(ctx, fe_domid, &disk, 0)) {
         fprintf(stderr, "libxl_device_disk_add failed.\n");
         return 1;
