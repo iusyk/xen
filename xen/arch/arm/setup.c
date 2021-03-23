@@ -991,6 +991,9 @@ void __init start_xen(unsigned long boot_phys_offset,
     apply_alternatives_all();
     enable_errata_workarounds();
 
+    if (platform_late_init())
+        panic("platform_late_init() failed\n");
+
     /* Create initial domain 0. */
     if ( !is_dom0less_mode() )
         dom0 = create_dom0();
