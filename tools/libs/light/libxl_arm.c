@@ -195,6 +195,11 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
         vuart_enabled = true;
     }
 
+    if (d_config->b_info.arch_arm.rproc >= 0) {
+        if (nr_spis < (GUEST_MFIS_SPI - 32))
+            nr_spis = (GUEST_MFIS_SPI - 32) + 1;
+    }
+
     for (i = 0; i < d_config->num_disks; i++) {
         libxl_device_disk *disk = &d_config->disks[i];
 
