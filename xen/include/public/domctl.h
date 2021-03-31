@@ -1153,6 +1153,11 @@ struct xen_domctl_vuart_op {
                                  */
 };
 
+struct xen_domctl_enable_rproc
+{
+    uint8_t chan_id;
+};
+
 /* XEN_DOMCTL_vmtrace_op: Perform VM tracing operations. */
 struct xen_domctl_vmtrace_op {
     uint32_t cmd;           /* IN */
@@ -1271,6 +1276,7 @@ struct xen_domctl {
 #define XEN_DOMCTL_get_cpu_policy                82
 #define XEN_DOMCTL_set_cpu_policy                83
 #define XEN_DOMCTL_vmtrace_op                    84
+#define XEN_DOMCTL_enable_rproc                 200
 #define XEN_DOMCTL_gdbsx_guestmemio            1000
 #define XEN_DOMCTL_gdbsx_pausevcpu             1001
 #define XEN_DOMCTL_gdbsx_unpausevcpu           1002
@@ -1331,6 +1337,7 @@ struct xen_domctl {
         struct xen_domctl_monitor_op        monitor_op;
         struct xen_domctl_psr_alloc         psr_alloc;
         struct xen_domctl_vuart_op          vuart_op;
+        struct xen_domctl_enable_rproc      enable_rproc;
         struct xen_domctl_vmtrace_op        vmtrace_op;
         uint8_t                             pad[128];
     } u;
