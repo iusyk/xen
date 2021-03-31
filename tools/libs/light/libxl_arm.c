@@ -89,6 +89,11 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
         vuart_enabled = true;
     }
 
+    if (d_config->b_info.arch_arm.rproc >= 0) {
+        if (nr_spis < (GUEST_MFIS_SPI - 32))
+            nr_spis = (GUEST_MFIS_SPI - 32) + 1;
+    }
+
     /*
      * Virtio MMIO params are non-unique across the whole system and must be
      * initialized for every new guest.
@@ -1298,6 +1303,16 @@ int libxl__arch_build_dom_finish(libxl__gc *gc,
                                  libxl__domain_build_state *state)
 {
     int rc = 0, ret;
+
+    if (info->arch_arm.rproc >=0 ) {
+        ret = xc_domain_setrproc(CTX->xch, dom->guest_domid,
+                                info->arch_arm.rproc);
+        if ( ret < 0) {
+            rc = ERROR_FAIL;
+            LOG(ERROR, "xc_domain_setrproc failed: %d\n", ret);
+            goto out;
+        }
+    }
 
     if (info->arch_arm.vuart != LIBXL_VUART_TYPE_SBSA_UART) {
         rc = 0;
