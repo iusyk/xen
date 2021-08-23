@@ -13,6 +13,7 @@ struct platform_desc {
     const char *const *compatible;
     /* Platform initialization */
     int (*init)(void);
+    int (*late_init)(void);
     int (*init_time)(void);
 #ifdef CONFIG_ARM_32
     /* SMP */
@@ -32,6 +33,12 @@ struct platform_desc {
      * Defined has a function because a platform can support multiple
      * board with different quirk on each
      */
+    /* Platform-specific domctl handler */
+    int (*do_domctl)(struct xen_domctl *domctl, struct domain *d,
+                     XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl);
+
+    void (*domain_destroy)(struct domain *d);
+
     uint32_t (*quirks)(void);
     /*
      * Platform blacklist devices
@@ -50,6 +57,7 @@ struct platform_desc {
 #define PLATFORM_QUIRK_GIC_64K_STRIDE (1 << 0)
 
 void platform_init(void);
+int platform_late_init(void);
 int platform_init_time(void);
 int platform_specific_mapping(struct domain *d);
 #ifdef CONFIG_ARM_32
@@ -61,6 +69,9 @@ void platform_poweroff(void);
 bool platform_smc(struct cpu_user_regs *regs);
 bool platform_has_quirk(uint32_t quirk);
 bool platform_device_is_blacklisted(const struct dt_device_node *node);
+int  platform_do_domctl(struct xen_domctl *domctl, struct domain *d,
+                        XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl);
+void platform_domain_destroy(struct domain *d);
 
 #define PLATFORM_START(_name, _namestr)                         \
 static const struct platform_desc  __plat_desc_##_name __used   \

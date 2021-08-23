@@ -598,12 +598,30 @@ struct xen_domctl_bind_pt_irq {
 */
 #define DPCI_ADD_MAPPING         1
 #define DPCI_REMOVE_MAPPING      0
+/*
+ * Default memory policy. Corresponds to:
+ * Arm: MEMORY_POLICY_ARM_DEV_nGnRE
+ * x86: Memory type UNCACHABLE
+ */
+#define MEMORY_POLICY_DEFAULT         0
+#if defined(__arm__) || defined (__aarch64__)
+/* Arm only. Outer Shareable, Device-nGnRE memory (Device Memory on Armv7) */
+# define MEMORY_POLICY_ARM_DEV_nGnRE      0
+/* Arm only. Outer Shareable, Outer/Inner Write-Back Cacheable memory */
+# define MEMORY_POLICY_ARM_MEM_WB         1
+/*
+ * On Arm, MEMORY_POLICY selects the stage-2 memory attributes, but note
+ * that the resulting memory attributes will be a combination of stage-2
+ * and stage-1 memory attributes: it will be the strongest between the 2
+ * stages attributes.
+ */
+#endif
 struct xen_domctl_memory_mapping {
     uint64_aligned_t first_gfn; /* first page (hvm guest phys page) in range */
     uint64_aligned_t first_mfn; /* first page (machine page) in range */
     uint64_aligned_t nr_mfns;   /* number of pages in range (>0) */
     uint32_t add_mapping;       /* add or remove mapping */
-    uint32_t padding;           /* padding for 64-bit aligned structure */
+    uint32_t memory_policy;      /* cacheability of the memory mapping */
 };
 
 
@@ -1135,6 +1153,11 @@ struct xen_domctl_vuart_op {
                                  */
 };
 
+struct xen_domctl_enable_rproc
+{
+    uint8_t chan_id;
+};
+
 /* XEN_DOMCTL_vmtrace_op: Perform VM tracing operations. */
 struct xen_domctl_vmtrace_op {
     uint32_t cmd;           /* IN */
@@ -1253,6 +1276,7 @@ struct xen_domctl {
 #define XEN_DOMCTL_get_cpu_policy                82
 #define XEN_DOMCTL_set_cpu_policy                83
 #define XEN_DOMCTL_vmtrace_op                    84
+#define XEN_DOMCTL_enable_rproc                 200
 #define XEN_DOMCTL_gdbsx_guestmemio            1000
 #define XEN_DOMCTL_gdbsx_pausevcpu             1001
 #define XEN_DOMCTL_gdbsx_unpausevcpu           1002
@@ -1313,6 +1337,7 @@ struct xen_domctl {
         struct xen_domctl_monitor_op        monitor_op;
         struct xen_domctl_psr_alloc         psr_alloc;
         struct xen_domctl_vuart_op          vuart_op;
+        struct xen_domctl_enable_rproc      enable_rproc;
         struct xen_domctl_vmtrace_op        vmtrace_op;
         uint8_t                             pad[128];
     } u;

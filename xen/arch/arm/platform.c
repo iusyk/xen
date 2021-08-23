@@ -74,6 +74,16 @@ void __init platform_init(void)
         panic("Unable to initialize the platform\n");
 }
 
+int __init platform_late_init(void)
+{
+    int res = 0;
+
+    if ( platform && platform->late_init )
+        res = platform->late_init();
+
+    return res;
+}
+
 int __init platform_init_time(void)
 {
     int res = 0;
@@ -133,6 +143,21 @@ bool platform_smc(struct cpu_user_regs *regs)
         return platform->smc(regs);
 
     return false;
+}
+
+int platform_do_domctl(struct xen_domctl *domctl, struct domain *d,
+                       XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
+{
+    if ( likely(platform && platform->do_domctl) )
+        return platform->do_domctl(domctl, d, u_domctl);
+
+    return -ENOSYS;
+}
+
+void platform_domain_destroy(struct domain *d)
+{
+    if ( platform && platform->domain_destroy )
+        platform->domain_destroy(d);
 }
 
 bool platform_has_quirk(uint32_t quirk)

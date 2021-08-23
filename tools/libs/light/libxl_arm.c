@@ -89,6 +89,11 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
         vuart_enabled = true;
     }
 
+    if (d_config->b_info.arch_arm.rproc >= 0) {
+        if (nr_spis < (GUEST_MFIS_SPI - 32))
+            nr_spis = (GUEST_MFIS_SPI - 32) + 1;
+    }
+
     /*
      * Virtio MMIO params are non-unique across the whole system and must be
      * initialized for every new guest.
@@ -1299,6 +1304,16 @@ int libxl__arch_build_dom_finish(libxl__gc *gc,
 {
     int rc = 0, ret;
 
+    if (info->arch_arm.rproc >=0 ) {
+        ret = xc_domain_setrproc(CTX->xch, dom->guest_domid,
+                                info->arch_arm.rproc);
+        if ( ret < 0) {
+            rc = ERROR_FAIL;
+            LOG(ERROR, "xc_domain_setrproc failed: %d\n", ret);
+            goto out;
+        }
+    }
+
     if (info->arch_arm.vuart != LIBXL_VUART_TYPE_SBSA_UART) {
         rc = 0;
         goto out;
@@ -1395,6 +1410,20 @@ int libxl__arch_passthrough_mode_setdefault(libxl__gc *gc,
     rc = 0;
  out:
     return rc;
+}
+
+int libxl__arch_memory_policy_to_xc(libxl_memory_policy c)
+{
+    switch (c) {
+    case LIBXL_MEMORY_POLICY_ARM_MEM_WB:
+        return MEMORY_POLICY_ARM_MEM_WB;
+    case LIBXL_MEMORY_POLICY_ARM_DEV_NGNRE:
+        return MEMORY_POLICY_ARM_DEV_nGnRE;
+   case LIBXL_MEMORY_POLICY_DEFAULT:
+        return MEMORY_POLICY_DEFAULT;
+    default:
+        return ERROR_INVAL;
+    }
 }
 
 void libxl__arch_update_domain_config(libxl__gc *gc,
