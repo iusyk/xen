@@ -27,6 +27,8 @@ struct platform_desc {
     void (*poweroff)(void);
     /* Platform specific SMC handler */
     bool (*smc)(struct cpu_user_regs *regs);
+    /* Domain destroy handler */
+    void (*domain_destroy)(struct domain *d);
     /*
      * Platform quirks
      * Defined has a function because a platform can support multiple
@@ -61,6 +63,7 @@ void platform_poweroff(void);
 bool platform_smc(struct cpu_user_regs *regs);
 bool platform_has_quirk(uint32_t quirk);
 bool platform_device_is_blacklisted(const struct dt_device_node *node);
+void platform_domain_destroy(struct domain *d);
 
 #define PLATFORM_START(_name, _namestr)                         \
 static const struct platform_desc  __plat_desc_##_name __used   \

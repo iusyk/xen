@@ -126,6 +126,12 @@ bool platform_smc(struct cpu_user_regs *regs)
     return false;
 }
 
+void platform_domain_destroy(struct domain *d)
+{
+    if ( platform && platform->domain_destroy )
+        platform->domain_destroy(d);
+}
+
 bool platform_has_quirk(uint32_t quirk)
 {
     uint32_t quirks = 0;
