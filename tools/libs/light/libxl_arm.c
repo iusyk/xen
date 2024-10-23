@@ -195,6 +195,11 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
         vuart_enabled = true;
     }
 
+    if (d_config->b_info.arch_arm.rproc >= 0) {
+        if (nr_spis < (GUEST_MFIS_SPI - 32))
+            nr_spis = (GUEST_MFIS_SPI - 32) + 1;
+    }
+
     for (i = 0; i < d_config->num_disks; i++) {
         libxl_device_disk *disk = &d_config->disks[i];
 
@@ -2308,6 +2313,16 @@ int libxl__arch_build_dom_finish(libxl__gc *gc,
                                  libxl__domain_build_state *state)
 {
     int rc = 0, ret;
+
+    if (info->arch_arm.rproc >=0 ) {
+        ret = xc_domain_setrproc(CTX->xch, dom->guest_domid,
+                                info->arch_arm.rproc);
+        if ( ret < 0) {
+            rc = ERROR_FAIL;
+            LOG(ERROR, "xc_domain_setrproc failed: %d\n", ret);
+            goto out;
+        }
+    }
 
     if (info->arm_sci == LIBXL_ARM_SCI_TYPE_SCMI_SMC) {
         ret = map_sci_page(gc, dom->guest_domid, state->arm_sci_agent_paddr,
