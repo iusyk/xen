@@ -263,6 +263,7 @@ int iommu_do_dt_domctl(struct xen_domctl *domctl, struct domain *d,
 {
     int ret;
     struct dt_device_node *dev;
+    struct domain_iommu *hd = dom_iommu(d);
 
     read_lock(&dt_host_lock);
 
@@ -319,6 +320,14 @@ int iommu_do_dt_domctl(struct xen_domctl *domctl, struct domain *d,
             break;
         }
 
+        /*
+         * iommu_add_dt_device returns 1 if iommu is disabled or device don't
+         * have iommus property
+         */
+        if ( (ret == 1) && (hd->force_assign_iommu) ) {
+            ret = -ENOSYS;
+            break;
+        }
         ret = ac_assign_dt_device(dev, d);
         if ( ret < 0 )
             return ret;
@@ -358,10 +367,14 @@ int iommu_do_dt_domctl(struct xen_domctl *domctl, struct domain *d,
 
         ret = iommu_deassign_dt_device(d, dev);
 
-        if ( ret )
-            printk(XENLOG_G_ERR "XEN_DOMCTL_assign_dt_device: assign \"%s\""
-                   " to dom%u failed (%d)\n",
-                   dt_node_full_name(dev), d->domain_id, ret);
+        if ( ret ) {
+            if ( hd->force_assign_iommu )
+                ret = -ENOSYS;
+            else
+                printk(XENLOG_G_ERR "XEN_DOMCTL_assign_dt_device: assign \"%s\""
+                    " to dom%u failed (%d)\n",
+                    dt_node_full_name(dev), d->domain_id, ret);
+       }
         break;
 
     default:

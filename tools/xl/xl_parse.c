@@ -3299,6 +3299,9 @@ skip_usbdev:
     else
         b_info->arch_arm.rproc = -1;
 
+    xlu_cfg_get_defbool(config, "force_assign_without_iommu",
+       &b_info->force_assign_without_iommu, 0);
+
     parse_vkb_list(config, d_config);
     parse_vgsx_list(config, d_config);
     parse_vcamera_list(config, d_config);

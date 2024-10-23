@@ -1488,6 +1488,11 @@ return fmt.Errorf("converting field DmRestrict: %v", err)
 }
 xc.tee = C.libxl_tee_type(x.Tee)
 xc.arm_sci = C.libxl_arm_sci_type(x.ArmSci)
+
+if err := x.ForceAssignWithoutIommu.fromC(&xc.force_assign_without_iommu);err != nil {
+return fmt.Errorf("converting field ForceAssignWithoutIommu: %v", err)
+}
+
 xc._type = C.libxl_domain_type(x.Type)
 switch x.Type{
 case DomainTypeHvm:

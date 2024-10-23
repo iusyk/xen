@@ -590,6 +590,7 @@ NestedHvm Defbool
 Apic Defbool
 DmRestrict Defbool
 Tee TeeType
+ForceAssignWithoutIommu Defbool
 ArmSci ArmSciType
 Type DomainType
 TypeUnion DomainBuildInfoTypeUnion
