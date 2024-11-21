@@ -14,6 +14,7 @@
 #include <xen/init.h>
 #include <xen/iocap.h>
 #include <xen/lib.h>
+#include <asm/sci/sci.h>
 
 extern const struct device_desc _sdevice[], _edevice[];
 extern const struct acpi_device_desc _asdevice[], _aedevice[];
@@ -356,6 +357,11 @@ int handle_device(struct domain *d, struct dt_device_node *dev, p2m_type_t p2mt,
                 return res;
             }
         }
+#ifdef CONFIG_ARM_SCI
+	res = sci_add_dt_device(d, dev);
+        if ( res < 0 )
+            return res;
+#endif
     }
 
     res = map_device_irqs_to_domain(d, dev, own_device, irq_ranges);

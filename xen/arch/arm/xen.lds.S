@@ -152,6 +152,20 @@ SECTIONS
       _eteemediator = .;
   } :text
 
+  . = ALIGN(8);
+  .scimediator.info : {
+      _sscimediator = .;
+      *(.scimediator.info)
+      _escimediator = .;
+  } :text
+
+  . = ALIGN(8);
+  .scimediator.info : {
+      _sscimediator = .;
+      *(.scimediator.info)
+      _escimediator = .;
+  } :text
+
   . = ALIGN(PAGE_SIZE);             /* Init code and data */
   __init_begin = .;
   .init.text : {

@@ -14,6 +14,7 @@
 #include <asm/cpufeature.h>
 #include <asm/monitor.h>
 #include <asm/regs.h>
+#include <asm/sci/sci.h>
 #include <asm/smccc.h>
 #include <asm/tee/ffa.h>
 #include <asm/tee/tee.h>
@@ -288,7 +289,13 @@ static bool vsmccc_handle_call(struct cpu_user_regs *regs)
             handled = handle_sssc(regs);
             break;
         case ARM_SMCCC_OWNER_SIP:
-            handled = platform_smc(regs);
+#ifdef CONFIG_ARM_SCI
+            handled = sci_handle_call(current->domain, regs);
+            if ( !handled )
+	        handled = platform_smc(regs);
+#else
+	    handled = platform_smc(regs);
+#endif
             break;
         case ARM_SMCCC_OWNER_TRUSTED_APP ... ARM_SMCCC_OWNER_TRUSTED_APP_END:
         case ARM_SMCCC_OWNER_TRUSTED_OS ... ARM_SMCCC_OWNER_TRUSTED_OS_END:

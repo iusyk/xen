@@ -26,6 +26,7 @@
 #include <asm/procinfo.h>
 #include <asm/regs.h>
 #include <asm/tee/tee.h>
+#include <asm/sci/sci.h>
 #include <asm/vfp.h>
 #include <asm/vgic.h>
 #include <asm/vtimer.h>
@@ -686,7 +687,14 @@ int arch_sanitise_domain_config(struct xen_domctl_createdomain *config)
         dprintk(XENLOG_INFO, "Unsupported TEE type\n");
         return -EINVAL;
     }
-
+#ifdef CONFIG_ARM_SCI 
+    if ( config->arch.arm_sci_type != XEN_DOMCTL_CONFIG_ARM_SCI_NONE &&
+         config->arch.arm_sci_type != sci_get_type() )
+    {
+        dprintk(XENLOG_INFO, "Unsupported ARM_SCI type\n");
+        return -EINVAL;
+    }
+#endif
     return 0;
 }
 
@@ -767,8 +775,15 @@ int arch_domain_create(struct domain *d,
         /* At this stage vgic_reserve_virq should never fail */
         if ( !vgic_reserve_virq(d, GUEST_EVTCHN_PPI) )
             BUG();
+#ifdef CONFIG_ARM_SCI
+        if ( config->arch.arm_sci_type != XEN_DOMCTL_CONFIG_ARM_SCI_NONE )
+        {
+            if ( (rc = sci_domain_init(d, config->arch.arm_sci_type,
+                    &config->arch)) != 0)
+                    goto fail;
+        }
+#endif
     }
-
     /*
      * Virtual UART is only used by linux early printk and decompress code.
      * Only use it for the hardware domain because the linux kernel may not
@@ -846,6 +861,9 @@ void arch_domain_destroy(struct domain *d)
     domain_vgic_free(d);
     domain_vuart_free(d);
     free_xenheap_page(d->shared_info);
+#ifdef CONFIG_ARM_SCI
+    sci_domain_destroy(d);
+#endif
 #ifdef CONFIG_ACPI
     free_xenheap_pages(d->arch.efi_acpi_table,
                        get_order_from_bytes(d->arch.efi_acpi_len));
@@ -1039,6 +1057,7 @@ enum {
     PROG_p2m_root,
     PROG_p2m,
     PROG_p2m_pool,
+    PROG_sci,
     PROG_done,
 };
 
@@ -1100,6 +1119,13 @@ int domain_relinquish_resources(struct domain *d)
         ret = relinquish_p2m_mapping(d);
         if ( ret )
             return ret;
+
+#ifdef CONFIG_ARM_SCI
+    PROGRESS(sci):
+        ret = sci_relinquish_resources(d);
+        if ( ret )
+            return ret;
+#endif
 
     PROGRESS(p2m_root):
         /*

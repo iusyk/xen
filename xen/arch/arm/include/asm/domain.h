@@ -11,6 +11,7 @@
 #include <asm/vgic.h>
 #include <asm/vpl011.h>
 #include <public/hvm/params.h>
+#include <asm/sci/sci.h>
 
 struct hvm_domain
 {
@@ -117,6 +118,11 @@ struct arch_domain
 
 #ifdef CONFIG_TEE
     void *tee;
+#endif
+
+#ifdef CONFIG_ARM_SCI
+    struct sci_channel sci_channel;
+    void *sci;
 #endif
 
     /* OSID used by virtual GSX device */
