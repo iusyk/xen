@@ -776,7 +776,8 @@ int arch_domain_create(struct domain *d,
         if ( !vgic_reserve_virq(d, GUEST_EVTCHN_PPI) )
             BUG();
 #ifdef CONFIG_ARM_SCI
-        if ( config->arch.arm_sci_type != XEN_DOMCTL_CONFIG_ARM_SCI_NONE )
+        if ( !is_idle_domain(d) && 
+            config->arch.arm_sci_type != XEN_DOMCTL_CONFIG_ARM_SCI_NONE )
         {
             if ( (rc = sci_domain_init(d, config->arch.arm_sci_type,
                     &config->arch)) != 0)
