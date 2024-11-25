@@ -613,7 +613,7 @@ int libxl__domain_build(libxl__gc *gc,
 out:
     return ret;
 }
-
+/*
 static int map_sci_page(libxl__gc *gc, uint32_t domid, uint64_t paddr,
                          uint64_t guest_addr)
 {
@@ -645,7 +645,7 @@ static int map_sci_page(libxl__gc *gc, uint32_t domid, uint64_t paddr,
 
     return 0;
 }
-
+*/
 int libxl__domain_make(libxl__gc *gc, libxl_domain_config *d_config,
                        libxl__domain_build_state *state,
                        uint32_t *domid, bool soft_reset)
@@ -812,7 +812,7 @@ int libxl__domain_make(libxl__gc *gc, libxl_domain_config *d_config,
         rc = ERROR_FAIL;
         goto out;
     }
-
+/*
     if (d_config->b_info.arm_sci == LIBXL_ARM_SCI_TYPE_SCMI_SMC) {
         ret = map_sci_page(gc, *domid, state->arm_sci_agent_paddr,
                             GUEST_SCI_SHMEM_BASE);
@@ -822,7 +822,7 @@ int libxl__domain_make(libxl__gc *gc, libxl_domain_config *d_config,
             goto out;
         }
     }
-
+*/
     dom_path = libxl__xs_get_dompath(gc, *domid);
     if (!dom_path) {
         rc = ERROR_FAIL;
