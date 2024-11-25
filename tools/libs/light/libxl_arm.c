@@ -1749,20 +1749,20 @@ static int make_firmware_node(libxl__gc *gc, void *fdt, void *pfdt, int tee,
 
     if ((tee == LIBXL_TEE_TYPE_NONE) && (sci == LIBXL_ARM_SCI_TYPE_NONE))
         return 0;
-
+    LOG(WARN, "IHOR make_firmware_node -1");
     res = fdt_begin_node(fdt, "firmware");
     if (res) return res;
-
+    LOG(WARN, "IHOR make_firmware_node -2");
     if (tee == LIBXL_TEE_TYPE_OPTEE) {
        res = make_optee_node(gc, fdt);
        if (res) return res;
     }
-
+    LOG(WARN, "IHOR make_firmware_node -3");
     if (sci == LIBXL_ARM_SCI_TYPE_SCMI_SMC) {
         res = make_scmi_node(gc, fdt, pfdt);
         if (res) return res;
     }
-
+    LOG(WARN, "IHOR make_firmware_node -4");
     res = fdt_end_node(fdt);
     if (res) return res;
 
