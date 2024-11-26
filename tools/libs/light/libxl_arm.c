@@ -1729,16 +1729,21 @@ static int make_scmi_node(libxl__gc *gc, void *fdt, void *pfdt)
     int res = 0;
     int nodeoff =
         fdt_node_offset_by_compatible(pfdt, 0, SCMI_NODE_COMPATIBLE);
+    LOG(WARN, "IHOR make_scmi_node nodeoff %d", nodeoff);
     if (nodeoff > 0) {
         res = copy_node(gc, fdt, pfdt, nodeoff, 0);
+	LOG(WARN, "IHOR make_scmi_node, copy_node %d", res);
         if (res) return res;
 
         res = set_shmem_phandle(fdt, SCMI_NODE_COMPATIBLE);
+	LOG(WARN, "IHOR make_scmi_node set_shmem_phandle  %d", res);
         if (res) return res;
     }
     else
+    {
         res = create_scmi_from_hypfs(fdt, SCMI_NODE_PATH);
-
+	LOG(WARN, "IHOR make_scmi_node create_scmi_from_hypfs %d", res);
+    }
     return res;
 }
 
