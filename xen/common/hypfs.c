@@ -376,13 +376,7 @@ int hypfs_read_dyndir_entry(const struct hypfs_entry *template,
     struct xen_hypfs_dirlistentry direntry;
     unsigned int e_len;
 
-    e_namelen = snprintf(name, sizeof(name), template->e.name, id);
-    if ( e_namelen >= sizeof(name) )
-    {
-        ASSERT_UNREACHABLE();
-        return -ENOBUFS;
-    }
-    e_len = DIRENTRY_SIZE(e_namelen);
+    e_len = DIRENTRY_SIZE(namelen);
     direntry.e.pad = 0;
     direntry.e.type = template->type;
     direntry.e.encoding = template->encoding;
