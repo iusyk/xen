@@ -862,14 +862,14 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
         if ( !ret )
             copyback = 1;
         break;
-
+/*
     case XEN_DOMCTL_assign_device:
     case XEN_DOMCTL_test_assign_device:
     case XEN_DOMCTL_deassign_device:
     case XEN_DOMCTL_get_device_group:
         ret = iommu_do_domctl(op, d, u_domctl);
         break;
-
+*/
     case XEN_DOMCTL_get_paging_mempool_size:
         ret = arch_get_paging_mempool_size(d, &op->u.paging_mempool.size);
         if ( !ret )
