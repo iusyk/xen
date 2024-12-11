@@ -695,10 +695,6 @@ struct domain *domain_create(domid_t domid,
         radix_tree_init(&d->pirq_tree);
     }
 
-    if ( (err = arch_domain_create(d, config, flags)) != 0 )
-        goto fail;
-    init_status |= INIT_arch;
-
     if ( !is_idle_domain(d) )
     {
         /*
