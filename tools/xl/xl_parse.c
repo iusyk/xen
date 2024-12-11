@@ -3309,6 +3309,9 @@ skip_usbdev:
     else
         b_info->arch_arm.rproc = -1;
 
+    xlu_cfg_get_defbool(config, "force_assign_without_iommu",
+       &b_info->force_assign_without_iommu, 0);
+
     if (!xlu_cfg_get_string (config, "arm_sci", &buf, 1)) {
         e = libxl_arm_sci_type_from_string(buf, &b_info->arm_sci);
         if (e) {

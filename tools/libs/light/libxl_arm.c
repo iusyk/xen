@@ -353,7 +353,9 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
         /* Vector length is divided by 128 in struct xen_domctl_createdomain */
         config->arch.sve_vl = d_config->b_info.arch_arm.sve_vl / 128U;
     }
-#ifdef CONFIG_SCMI_SM
+    if (libxl_defbool_val(d_config->b_info.force_assign_without_iommu))
+        config->iommu_opts |= XEN_DOMCTL_IOMMU_force_iommu;
+
     switch (d_config->b_info.arm_sci) {
     case LIBXL_ARM_SCI_TYPE_NONE:
         config->arch.arm_sci_type = XEN_DOMCTL_CONFIG_ARM_SCI_NONE;
@@ -366,7 +368,7 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
             d_config->b_info.arm_sci);
         return ERROR_FAIL;
     }
-#endif
+
     if (d_config->num_vgsxs) {
         libxl_device_vgsx *vgsx;
 
