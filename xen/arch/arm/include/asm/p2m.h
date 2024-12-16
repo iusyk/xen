@@ -315,16 +315,11 @@ void p2m_flush_vm(struct vcpu *v);
  * Map a region in the guest p2m with a specific p2m type.
  * The memory attributes will be derived from the p2m type.
  */
-int map_regions_p2mt(struct domain *d,
+int map_mmio_regions(struct domain *d,
                      gfn_t gfn,
                      unsigned long nr,
                      mfn_t mfn,
                      p2m_type_t p2mt);
-
-int unmap_regions_p2mt(struct domain *d,
-                       gfn_t gfn,
-                       unsigned long nr,
-                       mfn_t mfn);
 
 int map_dev_mmio_page(struct domain *d, gfn_t gfn, mfn_t mfn);
 
