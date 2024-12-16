@@ -725,32 +725,10 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
         if ( add )
         {
             printk(XENLOG_G_DEBUG
-                   "memory_map:add: dom%d gfn=%lx mfn=%lx nr=%lx policy=%u\n",
-                   d->domain_id, gfn, mfn, nr_mfns, memory_policy);
+                   "memory_map:add: dom%d gfn=%lx mfn=%lx nr=%lx\n",
+                   d->domain_id, gfn, mfn, nr_mfns);
 
             ret = map_mmio_regions(d, _gfn(gfn), nr_mfns, _mfn(mfn));
-            switch ( memory_policy )
-            {
-#ifdef CONFIG_ARM
-                case MEMORY_POLICY_ARM_MEM_WB:
-                    p2mt = p2m_mmio_direct_c;
-                    break;
-                case MEMORY_POLICY_ARM_DEV_nGnRE:
-                    p2mt = p2m_mmio_direct_dev;
-                    break;
-#endif
-#ifdef CONFIG_X86
-                case MEMORY_POLICY_DEFAULT:
-                    p2mt = p2m_mmio_direct;
-                    break;
-#endif
-                default:
-                    domctl_lock_release();
-                    ret = -EINVAL;
-                    goto domctl_out_unlock_domonly;
-            }
-            ret = map_mmio_regions(d, _gfn(gfn), nr_mfns, _mfn(mfn), p2mt);
->>>>>>> f06f319d56... xen: extend XEN_DOMCTL_memory_mapping to handle memory policy
             if ( ret < 0 )
                 printk(XENLOG_G_WARNING
                        "memory_map:fail: dom%d gfn=%lx mfn=%lx nr=%lx ret:%ld\n",
