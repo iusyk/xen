@@ -58,9 +58,10 @@ int sci_relinquish_resources(struct domain *d)
 
 uint16_t sci_get_type(void)
 {
+    printk("IHOR sci_get_type is mediator activated %d\n", (int)(!cur_mediator?0:1));
     if ( !cur_mediator )
         return XEN_DOMCTL_CONFIG_ARM_SCI_NONE;
-
+    printk("IHOR cur_mediator->sci_type %d\n", (int)cur_mediator->sci_type);
     return cur_mediator->sci_type;
 }
 

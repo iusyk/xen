@@ -687,7 +687,7 @@ int arch_sanitise_domain_config(struct xen_domctl_createdomain *config)
         dprintk(XENLOG_INFO, "Unsupported TEE type\n");
         return -EINVAL;
     }
-
+    dprintk(XENLOG_INFO, "IHOR arch.arm_sci_type %d, sci_get_type %d\n", (int)config->arch.arm_sci_type, (int)sci_get_type());
     if ( config->arch.arm_sci_type != XEN_DOMCTL_CONFIG_ARM_SCI_NONE &&
          config->arch.arm_sci_type != sci_get_type() )
     {
