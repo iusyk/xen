@@ -74,7 +74,7 @@ static int __init sci_init(void)
 
     for ( desc = _sscimediator; desc != _escimediator; desc++ )
     {
-	printk("IHOR iteration SCI_INIT acpi_s=disabled %d\n", acpi_disabled);
+	printk("IHOR iteration SCI_INIT acpi_s=disabled %d, matching %s\n", acpi_disabled, desc->dt_match);
         if ( acpi_disabled )
         {
             dt = dt_find_matching_node(dt_host, desc->dt_match);
