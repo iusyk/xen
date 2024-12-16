@@ -369,7 +369,7 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
             d_config->b_info.arm_sci);
         return ERROR_FAIL;
     }
-
+    LOG(ERROR, "IHOR config->arch.arm_sci_type %d\n", (int)config->arch.arm_sci_type);
     return 0;
 }
 
@@ -750,8 +750,8 @@ static int make_cpus_node(libxl__gc *gc, void *fdt, int nr_cpus,
         res = fdt_property_compat(gc, fdt, 1, ainfo->cpu_compat);
         if (res) return res;
 
-        res = fdt_property_string(fdt, "enable-method", "psci");
-        if (res) return res;
+        /*res = fdt_property_string(fdt, "enable-method", "psci");
+        if (res) return res;*/
 
         res = fdt_property_regs(gc, fdt, 1, 0, 1, mpidr_aff);
         if (res) return res;
@@ -765,7 +765,7 @@ static int make_cpus_node(libxl__gc *gc, void *fdt, int nr_cpus,
 
     return 0;
 }
-
+/*
 static int make_psci_node(libxl__gc *gc, void *fdt)
 {
     int res;
@@ -791,7 +791,7 @@ static int make_psci_node(libxl__gc *gc, void *fdt)
 
     return 0;
 }
-
+*/
 static int make_optee_node(libxl__gc *gc, void *fdt)
 {
     int res;
@@ -1995,7 +1995,7 @@ next_resize:
         FDT( make_root_properties(gc, vers, fdt, info) );
         FDT( make_chosen_node(gc, fdt, !!dom->modules[0].blob, state, info) );
         FDT( make_cpus_node(gc, fdt, info->max_vcpus, ainfo) );
-        FDT( make_psci_node(gc, fdt) );
+        /* FDT( make_psci_node(gc, fdt) );*/
 
         FDT( make_memory_nodes(gc, fdt, dom) );
 
