@@ -70,9 +70,11 @@ static int __init sci_init(void)
     const struct sci_mediator_desc *desc;
     struct dt_device_node *dt = NULL;
 
+    printk("IHOR calling SCI_INIT\n");
 
     for ( desc = _sscimediator; desc != _escimediator; desc++ )
     {
+	printk("IHOR iteration SCI_INIT acpi_s=disabled %d\n", acpi_disabled);
         if ( acpi_disabled )
         {
             dt = dt_find_matching_node(dt_host, desc->dt_match);
