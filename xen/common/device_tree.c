@@ -302,14 +302,22 @@ bool dt_device_is_compatible(const struct dt_device_node *device,
 {
     const char* cp;
     u32 cplen, l;
-
     cp = dt_get_property(device, "compatible", &cplen);
     if ( cp == NULL )
         return 0;
     while ( cplen > 0 )
     {
+	if (strstr(compat, "scmi") != NULL && strstr(cp, "scmi") != NULL) {
+	   printk("IHOR cp %s with compat %s, compare %d\n", cp, compat, (int)(dt_compat_cmp(cp, compat) == 0 ));
+	};
         if ( dt_compat_cmp(cp, compat) == 0 )
+	{
+	    if (strstr(compat, "scmi") != NULL && strstr(cp, "scmi") != NULL)
+	    {
+		printk("IHOR ret 1\n");
+	    }
             return 1;
+	}
         l = strlen(cp) + 1;
         cp += l;
         cplen -= l;
@@ -404,8 +412,10 @@ const struct dt_device_match *
 dt_match_node(const struct dt_device_match *matches,
               const struct dt_device_node *node)
 {
+    int isPrint= 0;
     if ( !matches )
         return NULL;
+    isPrint= (strstr(matches->compatible, "scmi") != NULL);
 
     while ( matches->path || matches->type ||
             matches->compatible || matches->not_available || matches->prop )
@@ -414,21 +424,42 @@ dt_match_node(const struct dt_device_match *matches,
 
         if ( matches->path )
             match &= dt_node_path_is_equal(node, matches->path);
-
+        if(isPrint)
+	{
+	   printk("IHOR path matching %d\n", (int)match);
+	}
         if ( matches->type )
             match &= dt_device_type_is_equal(node, matches->type);
-
+        if(isPrint)
+        {
+           printk("IHOR type matching %d\n", (int)match);
+        }
         if ( matches->compatible )
             match &= dt_device_is_compatible(node, matches->compatible);
-
+        if(isPrint)
+        {
+           printk("IHOR compatible matching %d\n", (int)match);
+        }
         if ( matches->not_available )
             match &= !dt_device_is_available(node);
-
+        if(isPrint)
+        {
+           printk("IHOR path not_available %d\n", (int)match);
+        }
         if ( matches->prop )
             match &= dt_find_property(node, matches->prop, NULL) != NULL;
-
+        if(isPrint)
+        {
+           printk("IHOR prop matching %d\n", (int)match);
+        }
         if ( match )
+	{
+	    if(isPrint)
+            {
+                printk("IHOR matching ret ok \n");
+            }
             return matches;
+	}
         matches++;
     }
 
