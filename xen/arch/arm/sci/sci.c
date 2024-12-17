@@ -77,6 +77,12 @@ static int __init sci_init(void)
 	printk("IHOR iteration SCI_INIT acpi_s=disabled %d\n", acpi_disabled);
         if ( acpi_disabled )
         {
+	    printk("IHOR find_matching path %s, type %s, compatible %s not_available %d, prop %s\n",
+			    desc->dt_match->path,
+			    desc->dt_match->type,
+			    desc->dt_match->compatible,
+			    (int)desc->dt_match->not_available,
+			    desc->dt_match->prop);
             dt = dt_find_matching_node(dt_host, desc->dt_match);
             if ( !dt )
                 continue;
