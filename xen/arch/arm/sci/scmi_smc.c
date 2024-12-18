@@ -233,7 +233,7 @@ static int send_smc_message(struct scmi_channel *chan_info,
            chan_info->shmem);
     if ( len > 0 && data )
         __memcpy_toio((void *)(chan_info->shmem->msg_payload), data, len);
-
+    printk(XENLOG_INFO "arm_smccc_smc func_id,%d agent_id %d\n", chan_info->func_id, chan_info->agent_id);
     arm_smccc_smc(chan_info->func_id, 0, 0, 0, 0, 0, 0, chan_info->agent_id,
                   &resp);
 
@@ -296,6 +296,7 @@ static int get_smc_response(struct scmi_channel *chan_info,
     }
 
     ret = channel_is_free(chan_info);
+    printk(XENLOG_INFO "scmi: channel free %d\n", ret);
     if ( IS_ERR_VALUE(ret) )
         return ret;
 
@@ -314,6 +315,7 @@ static int get_smc_response(struct scmi_channel *chan_info,
     recv_len = recv_len > pad ? recv_len - pad : 0;
 
     ret = check_scmi_status(hdr->status);
+    printk(XENLOG_INFO "scmi: check scmi_status %d\n", ret);
     if ( ret )
         return ret;
 
