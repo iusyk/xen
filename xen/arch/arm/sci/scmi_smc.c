@@ -645,6 +645,7 @@ static __init bool scmi_probe(struct dt_device_node *scmi_node)
                           sizeof(tx_agent_id), &da_rx, sizeof(da_rx));
         if ( agent_channel->domain_id != DOMID_XEN )
             unmap_channel_memory(agent_channel);
+	printk(XENLOG_INFO "scmi_probe do_smc_xfer %d\n", ret);
         if ( ret )
             goto error;
 
@@ -660,13 +661,15 @@ static __init bool scmi_probe(struct dt_device_node *scmi_node)
     }
 
     ret = ac_register(scmi_node, &scmi_ac_ops);
+    printk(XENLOG_INFO "scmi_probe ac_register %d\n", ret);
     if ( ret )
         goto error;
-
+    printk(XENLOG_INFO "scmi_probe ok\n");
     scmi_data.initialized = true;
     goto out;
 
 error:
+    printk(XENLOG_INFO "scmi_probe failed\n");
     unmap_channel_memory(channel);
     free_channel_list();
 out:
