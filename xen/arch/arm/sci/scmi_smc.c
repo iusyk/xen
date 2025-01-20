@@ -524,7 +524,7 @@ static __init int collect_agents(struct dt_device_node *scmi_node)
                    agent_id);
             return -EINVAL;
         }
-
+        printk("IHOR collect_agents agent_id %d , func_id %d, shmem %x\n", agent_id, smc_id, shmem_phandle);
         ret = dt_device_get_address(node, 0, &addr, &size);
         if ( ret )
         {
