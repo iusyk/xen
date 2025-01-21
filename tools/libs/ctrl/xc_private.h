@@ -252,19 +252,11 @@ static inline int do_domctl_maybe_retry_efault(xc_interface *xch,
     DECLARE_HYPERCALL_BOUNCE(domctl, sizeof(*domctl), XC_HYPERCALL_BUFFER_BOUNCE_BOTH);
 
     domctl->interface_version = XEN_DOMCTL_INTERFACE_VERSION;
-    if(domctl->cmd == 87)
-    {
-       PERROR("IHOR do_domctl_maybe_retry_efault get_scmi_info\n");
-    };
     if ( xc_hypercall_bounce_pre(xch, domctl) )
     {
         PERROR("Could not bounce buffer for domctl hypercall");
         goto out1;
     }
-    if(domctl->cmd == 87)
-    {
-       PERROR("IHOR do_domctl_maybe_retry_efault get_scmi_info CALLING\n");
-    };
     do {
         ret = xencall1(xch->xcall, __HYPERVISOR_domctl,
                        HYPERCALL_BUFFER_AS_ARG(domctl));
