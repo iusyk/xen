@@ -324,19 +324,28 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
         }
         /* fall through */
     default:
+	{
+	printk(XENLOG_INFO"IHOR do_domctl rcu_lock_domain_by_id\n");
         d = rcu_lock_domain_by_id(op->domain);
         if ( !d )
+	{
+	    printk(XENLOG_INFO"IHOR do_domctl rcu_lock_domain_by_id ret -ESRCH\n");
             return -ESRCH;
+	}
+	}
     }
 
     ret = xsm_domctl(XSM_OTHER, d, op->cmd);
     if ( ret )
+    {
+	printk(XENLOG_INFO"IHOR do_domctl goto comctl_out_unlock_domomly\n");
         goto domctl_out_unlock_domonly;
-
+    }
     if ( !domctl_lock_acquire() )
     {
         if ( d && d != dom_io )
             rcu_unlock_domain(d);
+	printk(XENLOG_INFO"IHOR do_domctl return hypercall_create_continuation\n");
         return hypercall_create_continuation(
             __HYPERVISOR_domctl, "h", u_domctl);
     }
