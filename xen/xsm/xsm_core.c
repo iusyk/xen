@@ -58,7 +58,8 @@ static enum xsm_bootparam __initdata xsm_bootparam =
 static int __init cf_check parse_xsm_param(const char *s)
 {
     int rc = 0;
-
+    printk(XENLOG_INFO
+               "IHOR parse_xsm_param %s\n",s);
     if ( !strcmp(s, "dummy") )
         xsm_bootparam = XSM_BOOTPARAM_DUMMY;
 #ifdef CONFIG_XSM_FLASK
@@ -98,24 +99,34 @@ static int __init xsm_core_init(const void *policy_buffer, size_t policy_size)
     switch ( xsm_bootparam )
     {
     case XSM_BOOTPARAM_DUMMY:
+	printk(XENLOG_INFO
+               "IHOR DUMMY XSM\n");
         xsm_ops_registered = XSM_OPS_REGISTERED;
         break;
 
     case XSM_BOOTPARAM_FLASK:
+	printk(XENLOG_INFO
+               "IHOR FLASK XSM\n");
         ops = flask_init(policy_buffer, policy_size);
         break;
 
     case XSM_BOOTPARAM_SILO:
+	printk(XENLOG_INFO
+               "IHOR SILO XSM\n");
         ops = silo_init();
         break;
 
     default:
+	printk(XENLOG_INFO
+               "IHOR ASSERT XSM\n");
         ASSERT_UNREACHABLE();
         break;
     }
 
     if ( ops )
     {
+	printk(XENLOG_INFO
+               "IHOR assign XSM\n");
         xsm_ops_registered = XSM_OPS_REGISTERED;
         xsm_ops = *ops;
     }
