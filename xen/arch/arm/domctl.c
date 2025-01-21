@@ -54,6 +54,7 @@ static int handle_vuart_init(struct domain *d,
 static int get_sci_info(struct domain *d, struct xen_domctl_sci_info *sci_info)
 {
 #ifdef CONFIG_ARM_SCI
+    printk(XENLOG_INFO"IHOR get_sci_info ret paddr %lx, func_id %x\n", d->arch.sci_channel.paddr, d->arch.sci_channel.guest_func_id);
     sci_info->paddr = d->arch.sci_channel.paddr;
     sci_info->func_id = d->arch.sci_channel.guest_func_id;
     return 0;
@@ -65,6 +66,7 @@ static int get_sci_info(struct domain *d, struct xen_domctl_sci_info *sci_info)
 long arch_do_domctl(struct xen_domctl *domctl, struct domain *d,
                     XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
 {
+    printk(XENLOG_INFO"IHOR do_domctl calling arch_do_domctl\n");
     switch ( domctl->cmd )
     {
     case XEN_DOMCTL_cacheflush:
@@ -192,8 +194,10 @@ long arch_do_domctl(struct xen_domctl *domctl, struct domain *d,
     }
     case XEN_DOMCTL_get_sci_info:
     {
-        int rc = get_sci_info(d, &domctl->u.sci_info);
-
+	int rc= 0;
+	printk(XENLOG_INFO"IHOR do_domctl calling get_sci_info\n");
+        rc = get_sci_info(d, &domctl->u.sci_info);
+	printk("IHOR handling get_sci_info ret %d\n", rc);
         if ( !rc )
             rc = copy_to_guest(u_domctl, domctl, 1);
 
