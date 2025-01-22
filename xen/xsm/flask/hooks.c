@@ -696,6 +696,9 @@ static int cf_check flask_domctl(struct domain *d, int cmd)
     case XEN_DOMCTL_assign_device:
     case XEN_DOMCTL_deassign_device:
 #endif
+#ifdef CONFIG_SCMI_SMC 
+    case XEN_DOMCTL_get_sci_info:
+#endif
         return 0;
 
     case XEN_DOMCTL_destroydomain:
