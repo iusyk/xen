@@ -284,23 +284,12 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
     bool copyback = false;
     struct xen_domctl curop, *op = &curop;
     struct domain *d;
-    printk(XENLOG_INFO"IHOR do_domctl\n");
     if ( copy_from_guest(op, u_domctl, 1) )
         return -EFAULT;
-    if(op->cmd == XEN_DOMCTL_get_sci_info)
-    {
-        printk(XENLOG_INFO"IHOR do_domctl starting get info\n");
-	printk(XENLOG_INFO"IHOR do_domctl interface %d, expected %d\n",  op->interface_version, XEN_DOMCTL_INTERFACE_VERSION);
-    }
 
     if ( op->interface_version != XEN_DOMCTL_INTERFACE_VERSION )
     {
-	printk(XENLOG_ERR"IHOR do_domctl EACCESS !!!!!!!!!!!!!!!!\n");
         return -EACCES;
-    }
-    if(op->cmd == XEN_DOMCTL_get_sci_info)
-    {
-        printk(XENLOG_INFO"IHOR do_domctl starting get info , version ok\n");
     }
     switch ( op->cmd )
     {
@@ -324,28 +313,18 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
         }
         /* fall through */
     default:
-	{
-	printk(XENLOG_INFO"IHOR do_domctl rcu_lock_domain_by_id\n");
         d = rcu_lock_domain_by_id(op->domain);
         if ( !d )
-	{
-	    printk(XENLOG_INFO"IHOR do_domctl rcu_lock_domain_by_id ret -ESRCH\n");
             return -ESRCH;
-	}
-	}
     }
 
     ret = xsm_domctl(XSM_OTHER, d, op->cmd);
     if ( ret )
-    {
-	printk(XENLOG_INFO"IHOR do_domctl goto comctl_out_unlock_domomly\n");
         goto domctl_out_unlock_domonly;
-    }
     if ( !domctl_lock_acquire() )
     {
         if ( d && d != dom_io )
             rcu_unlock_domain(d);
-	printk(XENLOG_INFO"IHOR do_domctl return hypercall_create_continuation\n");
         return hypercall_create_continuation(
             __HYPERVISOR_domctl, "h", u_domctl);
     }
@@ -879,7 +858,6 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
         break;
 
     default:
-	printk(XENLOG_INFO"IHOR from do_domctl call arch_do_domctl\n");
         ret = arch_do_domctl(op, d, u_domctl);
         break;
     }
