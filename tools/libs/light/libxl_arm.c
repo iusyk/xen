@@ -2313,6 +2313,16 @@ int libxl__arch_build_dom_finish(libxl__gc *gc,
                                  libxl__domain_build_state *state)
 {
     int rc = 0, ret;
+	
+    if (info->arch_arm.rproc >=0 ) {
+        ret = xc_domain_setrproc(CTX->xch, dom->guest_domid,
+                                info->arch_arm.rproc);
+        if ( ret < 0) {
+            rc = ERROR_FAIL;
+            LOG(ERROR, "xc_domain_setrproc failed: %d\n", ret);
+            goto out;
+        }
+    }
 
     if (info->arm_sci == LIBXL_ARM_SCI_TYPE_SCMI_SMC) {
         ret = map_sci_page(gc, dom->guest_domid, state->arm_sci_agent_paddr,
