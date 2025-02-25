@@ -1801,25 +1801,24 @@ static int scmi_dt_create_node(libxl__gc *gc, void *fdt, void *pfdt,
     if (rc) return rc;
 
     rc = fdt_property_compat(gc, fdt, 1, "arm,scmi-smc");
-    if (rc) return rc;
+    if (rc) goto out;
 
     rc = fdt_property_cell(fdt, "shmem", GUEST_PHANDLE_SCMI);
-    if (rc) return rc;
+    if (rc) goto out;
 
     rc = fdt_property_cell(fdt, "#addrets-cells", 1);
-    if (rc) return rc;
+    if (rc) goto out;
 
     rc = fdt_property_cell(fdt, "#size-cells", 0);
-    if (rc) return rc;
+    if (rc) goto out;
 
     rc = fdt_property_cell(fdt, "arm,smc-id", func_id);
-    if (rc) return rc;
+    if (rc) goto out;
 
     rc = scmi_dt_copy_subnodes(gc, fdt, pfdt);
-    if (rc) return rc;
-
+    if (rc) goto out;
+out:
     rc = fdt_end_node(fdt);
-    if (rc) return rc;
 
     return rc;
 }
