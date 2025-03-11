@@ -1930,6 +1930,7 @@ static void libxl__add_dtdevs(libxl__egc *egc, libxl__ao *ao, uint32_t domid,
         const libxl_device_dtdev *dtdev = &d_config->dtdevs[i];
 
         LOGD(DEBUG, domid, "Assign device \"%s\" to domain", dtdev->path);
+	LOGD(DEBUG, domid, "IHOR \n");
         rc = xc_assign_dt_device(CTX->xch, domid, dtdev->path);
         if (rc < 0) {
             LOGD(ERROR, domid, "xc_assign_dtdevice failed: %d", rc);

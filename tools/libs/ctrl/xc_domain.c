@@ -1587,10 +1587,10 @@ int xc_assign_dt_device(
     size_t size = strlen(path);
     struct xen_domctl domctl = {};
     DECLARE_HYPERCALL_BOUNCE(path, size, XC_HYPERCALL_BUFFER_BOUNCE_IN);
-
+    DPRINTF("IHOR xc_assign_dt_device \n");
     if ( xc_hypercall_bounce_pre(xch, path) )
         return -1;
-
+    DPRINTF("IHOR xc_assign_dt_device 2\n");
     domctl.cmd = XEN_DOMCTL_assign_device;
     domctl.domain = domid;
 
@@ -1602,7 +1602,7 @@ int xc_assign_dt_device(
      */
     domctl.u.assign_device.flags = 0;
     set_xen_guest_handle(domctl.u.assign_device.u.dt.path, path);
-
+    DPRINTF("IHOR xc_assign_dt_device 3\n");
     rc = do_domctl(xch, &domctl);
 
     xc_hypercall_bounce_post(xch, path);
