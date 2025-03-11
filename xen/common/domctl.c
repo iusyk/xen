@@ -284,24 +284,31 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
     bool copyback = false;
     struct xen_domctl curop, *op = &curop;
     struct domain *d;
-
     if ( copy_from_guest(op, u_domctl, 1) )
         return -EFAULT;
 
     if ( op->interface_version != XEN_DOMCTL_INTERFACE_VERSION )
         return -EACCES;
 
+    if(op->cmd == XEN_DOMCTL_assign_device)
+        printk(XENLOG_INFO"IHOR do_domctl 2\n");
     switch ( op->cmd )
     {
     case XEN_DOMCTL_assign_device:
     case XEN_DOMCTL_deassign_device:
+	if(op->cmd == XEN_DOMCTL_assign_device)
+        	printk(XENLOG_INFO"IHOR do_domctl 3\n");
         if ( op->domain == DOMID_IO )
         {
             d = dom_io;
             break;
         }
         else if ( op->domain == DOMID_INVALID )
+	{
+	    if(op->cmd == XEN_DOMCTL_assign_device)
+        	printk(XENLOG_INFO"IHOR do_domctl RET !!!\n");
             return -ESRCH;
+	}
         /* fall through */
     case XEN_DOMCTL_test_assign_device:
     case XEN_DOMCTL_vm_event_op:
@@ -329,7 +336,8 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
         return hypercall_create_continuation(
             __HYPERVISOR_domctl, "h", u_domctl);
     }
-
+    if(op->cmd == XEN_DOMCTL_assign_device)
+        printk(XENLOG_INFO"IHOR do_domctl 4 !!!\n");
     switch ( op->cmd )
     {
 
