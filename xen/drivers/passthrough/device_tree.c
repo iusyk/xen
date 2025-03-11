@@ -280,8 +280,7 @@ int iommu_do_dt_domctl(struct xen_domctl *domctl, struct domain *d,
             break;
 
         ret = -EINVAL;
-	printk(XENLOG_INFO "IHOR d %d isDying %d , domctl->u.assign_device.flags %d \n",
-                        (int)(d),
+	printk(XENLOG_INFO "IHOR isDying %d , domctl->u.assign_device.flags %d \n",
                         (int)d->is_dying,
 			domctl->u.assign_device.flags);
         if ( (d && d->is_dying) || domctl->u.assign_device.flags )
@@ -290,16 +289,14 @@ int iommu_do_dt_domctl(struct xen_domctl *domctl, struct domain *d,
         ret = dt_find_node_by_gpath(domctl->u.assign_device.u.dt.path,
                                     domctl->u.assign_device.u.dt.size,
                                     &dev);
-	printk(XENLOG_INFO "IHOR dt_find_node_by_gpath path %s ,node %s, ret %d \n",
-			domctl->u.assign_device.u.dt.path,
+	printk(XENLOG_INFO "IHOR dt_find_node_by_gpath node %s, ret %d \n",
 			dt_node_full_name(dev),
 			ret);
         if ( ret )
             break;
 
         ret = xsm_assign_dtdevice(XSM_HOOK, d, dt_node_full_name(dev));
-	printk(XENLOG_INFO "IHOR assigning path %s ,node %s, ret %d \n",
-                        domctl->u.assign_device.u.dt.path,
+	printk(XENLOG_INFO "IHOR assigning node %s, ret %d \n",
                         dt_node_full_name(dev),
                         ret);
         if ( ret )
