@@ -60,7 +60,7 @@ int ac_assign_dt_device(struct dt_device_node *dev, struct domain *d)
                                         index, &ac_spec) )
     {
         struct access_controller *ac = ac_find(ac_spec.np);
-
+        printk(XENLOG_DEBUG "IHOR find controller for %s\n", ac_spec.np->name);
         if ( !ac )
         {
             printk(XENLOG_INFO
@@ -70,12 +70,13 @@ int ac_assign_dt_device(struct dt_device_node *dev, struct domain *d)
         }
 
         ret = ac->ops->assign_device(dev, &ac_spec, d);
+	printk(XENLOG_DEBUG"IHOR assign_device ret %d\n", ret);
         /* TODO: Remove added devices */
         if ( ret )
             return ret;
 
         index++;
     }
-
+    printk(XENLOG_DEBUG "IHOR ac_assign_dt_device ret 0\n");
     return 0;
 }

@@ -33,21 +33,21 @@ int iommu_assign_dt_device(struct domain *d, struct dt_device_node *dev)
     struct domain_iommu *hd = dom_iommu(d);
 
     ASSERT(system_state < SYS_STATE_active || rw_is_locked(&dt_host_lock));
-
+    dprintk(XENLOG_INFO, "iommu_assign_dt_device 1\n");
     if ( !is_iommu_enabled(d) )
         return -EINVAL;
 
     if ( !dt_device_is_protected(dev) )
         return -EINVAL;
-
+    dprintk(XENLOG_INFO, "iommu_assign_dt_device 2\n");
     spin_lock(&dtdevs_lock);
 
     if ( !list_empty(&dev->domain_list) )
         goto fail;
-
+    dprintk(XENLOG_INFO, "iommu_assign_dt_device 3\n");
     /* The flag field doesn't matter to DT device. */
     rc = hd->platform_ops->assign_device(d, 0, dt_to_dev(dev), 0);
-
+    dprintk(XENLOG_INFO, "iommu_assign_dt_device 4 ret %d\n", rc);
     if ( rc )
         goto fail;
 
@@ -332,11 +332,12 @@ int iommu_do_dt_domctl(struct xen_domctl *domctl, struct domain *d,
         }
 
         ret = ac_assign_dt_device(dev, d);
+	printk("IHOR ac_assign_dt_device ret %d \n", ret);
         if ( ret < 0 )
             return ret;
-
+	printk("IHOR iommu_assign_dt_device \n");
         ret = iommu_assign_dt_device(d, dev);
-
+        printk("IHOR iommu_assign_dt_device ret %d\n", ret);
         if ( ret )
             printk(XENLOG_G_ERR "XEN_DOMCTL_assign_dt_device: assign \"%s\""
                    " to dom%u failed (%d)\n",

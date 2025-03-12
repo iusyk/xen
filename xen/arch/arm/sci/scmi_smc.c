@@ -552,7 +552,7 @@ static int scmi_assign_device(struct dt_device_node *dev,
                               struct domain *d)
 {
     uint32_t dev_id = ac_spec->args[0];
-
+    printk(XENLOG_INFO "scmi: IHOR scmi_assign_device\n");
     return scmi_add_device_by_devid(d, dev_id);
 }
 
@@ -703,14 +703,14 @@ static int scmi_add_device_by_devid(struct domain *d, uint32_t scmi_devid)
     struct scmi_device_permissions_a2p tx;
     struct scmi_attributes_p2a rx;
     int ret;
-
+    printk(XENLOG_ERR "scmi: IHOR scmi_add_device_by_devid -1\n");
     if ( !scmi_data.initialized )
         return 0;
 
     agent_channel = d->arch.sci;
     if ( IS_ERR_OR_NULL(agent_channel) )
         return PTR_ERR(agent_channel);
-
+    printk(XENLOG_ERR "scmi: IHOR scmi_add_device_by_devid -2\n");
     channel = get_channel_by_id(HYP_CHANNEL);
     if ( IS_ERR_OR_NULL(channel) )
         return PTR_ERR(channel);
@@ -724,6 +724,7 @@ static int scmi_add_device_by_devid(struct domain *d, uint32_t scmi_devid)
     tx.flags = SCMI_ALLOW_ACCESS;
 
     ret = do_smc_xfer(channel, &hdr, &tx, sizeof(tx), &rx, sizeof(&rx));
+    printk(XENLOG_ERR "scmi: IHOR scmi_add_device_by_devid -3 ret %d\n", ret);
     if ( IS_ERR_VALUE(ret) )
         return ret;
 

@@ -519,15 +519,15 @@ static int cf_check amd_iommu_assign_device(
     int req_id = get_dma_requestor_id(pdev->seg, bdf);
     int rc = amd_iommu_reserve_domain_unity_map(
                  d, ivrs_mappings[req_id].unity_map, flag);
-
+    printk(XENLOG_INFO "IHOR amd_iommu_assign_device 1, rc %d\n", rc);
     if ( !rc )
         rc = reassign_device(pdev->domain, d, devfn, pdev);
-
+    printk(XENLOG_INFO "IHOR amd_iommu_assign_device 2, rc %d\n", rc);
     if ( rc && !is_hardware_domain(d) )
     {
         int ret = amd_iommu_reserve_domain_unity_unmap(
                       d, ivrs_mappings[req_id].unity_map);
-
+        printk(XENLOG_INFO "IHOR amd_iommu_assign_device 3, rc %d\n", rwt);
         if ( ret )
         {
             printk(XENLOG_ERR "AMD-Vi: "
